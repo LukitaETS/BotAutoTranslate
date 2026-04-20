@@ -6,6 +6,7 @@ const express = require('express');
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
 const appConfig = require('../config/app');
 const { connectDatabase } = require('../services/database');
+const { registerSlashCommands } = require('../services/command-registry');
 const { createInternalBotRouter } = require('../routes/internal-bot');
 
 function loadCommands(client) {
@@ -65,6 +66,17 @@ async function bootstrap() {
   });
 
   await client.login(appConfig.botToken);
+
+  try {
+    const result = await registerSlashCommands();
+    if (result.scope === 'guild') {
+      console.log(`Registered ${result.count} slash commands for guild ${result.guildId}.`);
+    } else {
+      console.log(`Registered ${result.count} global slash commands.`);
+    }
+  } catch (error) {
+    console.error('Slash command registration failed during bot startup:', error);
+  }
 }
 
 bootstrap().catch((error) => {
