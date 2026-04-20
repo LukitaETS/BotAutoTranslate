@@ -7,7 +7,9 @@ router.get('/login', (req, res) => {
   const { state, url } = buildLoginUrl();
   req.session.oauthState = state;
   req.session.afterLoginRedirect = req.query.next || '/dashboard';
-  res.redirect(url);
+  req.session.save(() => {
+    res.redirect(url);
+  });
 });
 
 router.get('/callback', async (req, res) => {
