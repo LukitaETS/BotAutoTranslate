@@ -16,6 +16,7 @@ async function bootstrap() {
   await connectDatabase();
 
   const app = express();
+  app.set('trust proxy', 1);
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, 'views'));
 
@@ -30,6 +31,7 @@ async function bootstrap() {
   app.use(
     session({
       secret: appConfig.sessionSecret,
+      proxy: process.env.NODE_ENV === 'production',
       resave: false,
       saveUninitialized: false,
       store: MongoStore.create({
