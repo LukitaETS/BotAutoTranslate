@@ -37,6 +37,7 @@ async function translateEventPayload({ title, description, startsAt }, language)
   };
 }
 
+
 function buildAnnouncementDm(member, guild, language, payload) {
   const embed = new EmbedBuilder()
     .setColor(0x2f6fed)
