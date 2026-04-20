@@ -1,53 +1,3 @@
-const {
-  ChannelType,
-  EmbedBuilder,
-  PermissionFlagsBits,
-  SlashCommandBuilder
-} = require('discord.js');
-const { getLanguageChoices, getLanguage } = require('../config/languages');
-const { ensureGuildConfig, updateGuildConfig } = require('../services/guild-config-service');
-const { sendGuildLog } = require('../services/log-service');
-const { isGuildAdmin } = require('../utils/discord');
-const { t } = require('../utils/i18n');
-
-function buildConfigEmbed(guild, config) {
-  const languageRoles = Object.fromEntries(config.languageRoles || []);
-  const rolesSummary = Object.keys(languageRoles).length
-    ? Object.entries(languageRoles)
-        .map(([language, roleId]) => `${language}: <@&${roleId}>`)
-        .join('\n')
-    : t(config.defaultLanguage, 'common.notConfigured');
-
-  return new EmbedBuilder()
-    .setColor(0x5865f2)
-    .setTitle(t(config.defaultLanguage, 'config.summary'))
-    .addFields(
-      {
-        name: 'Canal de logs',
-        value: config.logChannelId ? `<#${config.logChannelId}>` : t(config.defaultLanguage, 'common.notConfigured'),
-        inline: false
-      },
-      {
-        name: 'Canal fallback',
-        value: config.fallbackChannelId
-          ? `<#${config.fallbackChannelId}>`
-          : t(config.defaultLanguage, 'common.notConfigured'),
-        inline: false
-      },
-      {
-        name: 'Idioma por defecto',
-        value: `${getLanguage(config.defaultLanguage).label} (${config.defaultLanguage})`,
-        inline: false
-      },
-      {
-        name: 'Roles por idioma',
-        value: rolesSummary,
-        inline: false
-      }
-    )
-    .setFooter({ text: guild.name })
-    .setTimestamp(new Date());
-}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -74,11 +24,11 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('canal-fallback')
-        .setDescription('Configura o limpia el canal fallback para DMs cerrados.')
+        .setDescription('Configura o limpia el canal fallback para DMs cerrados y menciones por idioma.')
         .addChannelOption((option) =>
           option
             .setName('canal')
-            .setDescription('Canal fallback (déjalo vacío para limpiar)')
+            .setDescription('Canal fallback donde se avisará al rol de idioma y al usuario')
             .setRequired(false)
             .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
         )
