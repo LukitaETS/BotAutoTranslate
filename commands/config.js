@@ -1,22 +1,77 @@
+const {
+  ChannelType,
+  EmbedBuilder,
+  PermissionFlagsBits,
+  SlashCommandBuilder
+} = require('discord.js');
+const { getLanguageChoices, getLanguage } = require('../config/languages');
+const {
+  ensureGuildConfig,
+  updateGuildConfig
+} = require('../services/guild-config-service');
+const { sendGuildLog } = require('../services/log-service');
+const { isGuildAdmin } = require('../utils/discord');
+const { t } = require('../utils/i18n');
+
+function buildConfigEmbed(guild, config) {
+  const languageRoles = Object.fromEntries(config.languageRoles || []);
+  const rolesSummary = Object.keys(languageRoles).length
+    ? Object.entries(languageRoles)
+        .map(([language, roleId]) => `${language}: <@&${roleId}>`)
+        .join('\n')
+    : t(config.defaultLanguage, 'common.notConfigured');
+
+  return new EmbedBuilder()
+    .setColor(0x5865f2)
+    .setTitle(t(config.defaultLanguage, 'config.summary'))
+    .addFields(
+      {
+        name: 'Log channel',
+        value: config.logChannelId
+          ? `<#${config.logChannelId}>`
+          : t(config.defaultLanguage, 'common.notConfigured'),
+        inline: false
+      },
+      {
+        name: 'Fallback channel',
+        value: config.fallbackChannelId
+          ? `<#${config.fallbackChannelId}>`
+          : t(config.defaultLanguage, 'common.notConfigured'),
+        inline: false
+      },
+      {
+        name: 'Default language',
+        value: `${getLanguage(config.defaultLanguage).label} (${config.defaultLanguage})`,
+        inline: false
+      },
+      {
+        name: 'Language roles',
+        value: rolesSummary,
+        inline: false
+      }
+    )
+    .setFooter({ text: guild.name })
+    .setTimestamp(new Date());
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('config')
-    .setDescription('Gestiona la configuración del bot en este servidor.')
+    .setDescription('Manage the bot configuration in this server.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addSubcommand((subcommand) =>
       subcommand
         .setName('ver')
-        .setDescription('Muestra la configuración actual del servidor.')
+        .setDescription('Show the current server configuration.')
     )
     .addSubcommand((subcommand) =>
       subcommand
         .setName('canal-logs')
-        .setDescription('Configura o limpia el canal de logs.')
+        .setDescription('Set or clear the log channel.')
         .addChannelOption((option) =>
           option
             .setName('canal')
-            .setDescription('Canal para logs (déjalo vacío para limpiar)')
+            .setDescription('Channel for logs. Leave empty to clear it.')
             .setRequired(false)
             .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
         )
@@ -24,11 +79,11 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('canal-fallback')
-        .setDescription('Configura o limpia el canal fallback para DMs cerrados y menciones por idioma.')
+        .setDescription('Set or clear the fallback channel for closed DMs.')
         .addChannelOption((option) =>
           option
             .setName('canal')
-            .setDescription('Canal fallback donde se avisará al rol de idioma y al usuario')
+            .setDescription('Fallback channel used for language-role mentions.')
             .setRequired(false)
             .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
         )
@@ -36,11 +91,11 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('idioma-default')
-        .setDescription('Configura el idioma por defecto del servidor.')
+        .setDescription('Set the default language for this server.')
         .addStringOption((option) =>
           option
             .setName('codigo')
-            .setDescription('Idioma por defecto')
+            .setDescription('Default language')
             .setRequired(true)
             .addChoices(...getLanguageChoices())
         )
@@ -48,18 +103,18 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('rol-idioma')
-        .setDescription('Asocia o limpia el rol asignado a un idioma.')
+        .setDescription('Set or clear the role assigned to a language.')
         .addStringOption((option) =>
           option
             .setName('codigo')
-            .setDescription('Idioma a mapear')
+            .setDescription('Language code')
             .setRequired(true)
             .addChoices(...getLanguageChoices())
         )
         .addRoleOption((option) =>
           option
             .setName('rol')
-            .setDescription('Rol que se asignará automáticamente')
+            .setDescription('Role assigned automatically for this language')
             .setRequired(false)
         )
     ),
@@ -83,6 +138,7 @@ module.exports = {
 
     const subcommand = interaction.options.getSubcommand(true);
     const currentConfig = await ensureGuildConfig(interaction.guild.id);
+    let updatedConfig = currentConfig;
 
     if (subcommand === 'ver') {
       await interaction.reply({
@@ -91,8 +147,6 @@ module.exports = {
       });
       return;
     }
-
-    let updatedConfig = currentConfig;
 
     if (subcommand === 'canal-logs') {
       const channel = interaction.options.getChannel('canal');
