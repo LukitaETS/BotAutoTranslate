@@ -1,0 +1,46 @@
+<%- include('partials/head', { title }) %>
+<%- include('partials/nav', { currentUser }) %>
+
+<main class="page-shell">
+  <section class="section-header">
+    <div>
+      <p class="eyebrow">Dashboard</p>
+      <h1>Servidores disponibles</h1>
+      <p class="section-copy">
+        Aquí aparecen los servidores donde el bot ya está presente y tu usuario tiene permisos de administrador.
+      </p>
+    </div>
+  </section>
+
+  <%- include('partials/flash', { flash }) %>
+
+  <% if (!guilds.length) { %>
+    <section class="empty-state">
+      <h2>No hay servidores visibles todavía</h2>
+      <p>
+        Revisa que el bot esté invitado al servidor y que tu cuenta tenga permiso de administrador.
+      </p>
+    </section>
+  <% } %>
+
+  <section class="guild-grid">
+    <% guilds.forEach((guild) => { %>
+      <article class="guild-card">
+        <div class="guild-card-header">
+          <% if (guild.iconURL) { %>
+            <img src="<%= guild.iconURL %>" alt="<%= guild.name %>" class="guild-icon" />
+          <% } else { %>
+            <div class="guild-icon guild-icon-fallback"><%= guild.name.slice(0, 1) %></div>
+          <% } %>
+          <div>
+            <h2><%= guild.name %></h2>
+            <p>Servidor conectado al bot</p>
+          </div>
+        </div>
+        <a class="primary-button full-width" href="/dashboard/guilds/<%= guild.id %>">Administrar servidor</a>
+      </article>
+    <% }) %>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

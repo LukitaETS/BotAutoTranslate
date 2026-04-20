@@ -1,0 +1,43 @@
+{
+  "name": "discord-language-bot-panel",
+  "version": "1.0.0",
+  "description": "Discord bot with multilingual announcements, events, and an admin web panel.",
+  "main": "bot/index.js",
+  "scripts": {
+    "start:bot": "node bot/index.js",
+    "start:web": "node web/index.js",
+    "start": "concurrently \"npm run start:bot\" \"npm run start:web\"",
+    "dev:bot": "nodemon bot/index.js",
+    "dev:web": "nodemon web/index.js",
+    "dev": "concurrently \"npm run dev:bot\" \"npm run dev:web\"",
+    "register:commands": "node scripts/deploy-commands.js"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "keywords": [
+    "discord",
+    "discord.js",
+    "bot",
+    "express",
+    "mongodb",
+    "oauth2"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "bottleneck": "^2.19.5",
+    "connect-mongo": "^5.1.0",
+    "discord.js": "14.22.1",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "helmet": "^8.1.0",
+    "mongoose": "^8.9.5",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.9"
+  }
+}

@@ -1,0 +1,220 @@
+<%- include('partials/head', { title }) %>
+<%- include('partials/nav', { currentUser }) %>
+
+<main class="page-shell">
+  <section class="section-header">
+    <div class="server-heading">
+      <% if (guild.iconURL) { %>
+        <img src="<%= guild.iconURL %>" alt="<%= guild.name %>" class="guild-icon large" />
+      <% } else { %>
+        <div class="guild-icon guild-icon-fallback large"><%= guild.name.slice(0, 1) %></div>
+      <% } %>
+      <div>
+        <p class="eyebrow">Servidor</p>
+        <h1><%= guild.name %></h1>
+        <p class="section-copy">
+          Configura canales, roles de idioma, anuncios, eventos y preferencias manuales de usuario.
+        </p>
+      </div>
+    </div>
+    <a class="ghost-button" href="/dashboard">Volver al dashboard</a>
+  </section>
+
+  <%- include('partials/flash', { flash }) %>
+
+  <section class="two-column-grid">
+    <article class="panel-card">
+      <div class="panel-card-header">
+        <h2>Configuración del servidor</h2>
+        <p>Estos cambios se guardan en MongoDB y el bot los usa al instante.</p>
+      </div>
+
+      <form method="post" action="/dashboard/guilds/<%= context.guild.id %>/config" class="stack-form">
+        <label>
+          <span>Canal de logs</span>
+          <select name="logChannelId">
+            <option value="">Sin configurar</option>
+            <% context.channels.forEach((channel) => { %>
+              <option
+                value="<%= channel.id %>"
+                <%= context.config.logChannelId === channel.id ? 'selected' : '' %>
+              >
+                #<%= channel.name %>
+              </option>
+            <% }) %>
+          </select>
+        </label>
+
+        <label>
+          <span>Canal fallback</span>
+          <select name="fallbackChannelId">
+            <option value="">Sin configurar</option>
+            <% context.channels.forEach((channel) => { %>
+              <option
+                value="<%= channel.id %>"
+                <%= context.config.fallbackChannelId === channel.id ? 'selected' : '' %>
+              >
+                #<%= channel.name %>
+              </option>
+            <% }) %>
+          </select>
+        </label>
+
+        <label>
+          <span>Idioma por defecto</span>
+          <select name="defaultLanguage">
+            <% supportedLanguages.forEach((language) => { %>
+              <option
+                value="<%= language.code %>"
+                <%= context.config.defaultLanguage === language.code ? 'selected' : '' %>
+              >
+                <%= language.label %> (<%= language.code %>)
+              </option>
+            <% }) %>
+          </select>
+        </label>
+
+        <div class="language-role-grid">
+          <% supportedLanguages.forEach((language) => { %>
+            <label>
+              <span>Rol para <%= language.label %></span>
+              <select name="role_<%= language.code %>">
+                <option value="">Sin asignar</option>
+                <% context.roles.forEach((role) => { %>
+                  <option
+                    value="<%= role.id %>"
+                    <%= context.config.languageRoles[language.code] === role.id ? 'selected' : '' %>
+                  >
+                    <%= role.name %>
+                  </option>
+                <% }) %>
+              </select>
+            </label>
+          <% }) %>
+        </div>
+
+        <button type="submit" class="primary-button">Guardar configuración</button>
+      </form>
+    </article>
+
+    <article class="panel-card">
+      <div class="panel-card-header">
+        <h2>Enviar anuncio</h2>
+        <p>Usa la misma lógica del comando <code>/anuncio</code>.</p>
+      </div>
+
+      <form method="post" action="/dashboard/guilds/<%= context.guild.id %>/announce" class="stack-form">
+        <label>
+          <span>Mensaje del anuncio</span>
+          <textarea
+            name="message"
+            rows="8"
+            placeholder="Escribe aquí el anuncio que se traducirá automáticamente..."
+            required
+          ></textarea>
+        </label>
+        <button type="submit" class="primary-button">Enviar anuncio</button>
+      </form>
+    </article>
+
+    <article class="panel-card">
+      <div class="panel-card-header">
+        <h2>Crear evento</h2>
+        <p>Se enviará por DM traducido y usará fallback en inglés cuando haga falta.</p>
+      </div>
+
+      <form method="post" action="/dashboard/guilds/<%= context.guild.id %>/events" class="stack-form">
+        <label>
+          <span>Título</span>
+          <input type="text" name="title" placeholder="Torneo semanal" required />
+        </label>
+
+        <label>
+          <span>Descripción</span>
+          <textarea
+            name="description"
+            rows="6"
+            placeholder="Detalles completos del evento..."
+            required
+          ></textarea>
+        </label>
+
+        <label>
+          <span>Fecha y hora</span>
+          <input type="datetime-local" name="startsAt" required />
+        </label>
+
+        <button type="submit" class="primary-button">Crear evento</button>
+      </form>
+    </article>
+  </section>
+
+  <section class="panel-card wide">
+    <div class="panel-card-header split">
+      <div>
+        <h2>Usuarios e idioma</h2>
+        <p>Puedes revisar la preferencia actual y cambiarla manualmente si hace falta.</p>
+      </div>
+      <input
+        id="member-filter"
+        class="search-input"
+        type="search"
+        placeholder="Buscar usuario..."
+      />
+    </div>
+
+    <div class="table-wrap">
+      <table class="members-table">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Editar preferencia</th>
+            <th>Actual</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% context.members.forEach((member) => { %>
+            <tr data-member-row data-member-name="<%= `${member.displayName} ${member.username}`.toLowerCase() %>">
+              <td>
+                <div class="member-cell">
+                  <% if (member.avatarURL) { %>
+                    <img src="<%= member.avatarURL %>" alt="<%= member.displayName %>" class="member-avatar" />
+                  <% } %>
+                  <div>
+                    <strong><%= member.displayName %></strong>
+                    <span>@<%= member.username %></span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <form
+                  method="post"
+                  action="/dashboard/guilds/<%= context.guild.id %>/users/<%= member.id %>/language"
+                  class="inline-form"
+                >
+                  <select name="language">
+                    <% supportedLanguages.forEach((language) => { %>
+                      <option
+                        value="<%= language.code %>"
+                        <%= member.language === language.code ? 'selected' : '' %>
+                      >
+                        <%= language.label %> (<%= language.code %>)
+                      </option>
+                    <% }) %>
+                  </select>
+                  <button type="submit" class="ghost-button">Actualizar</button>
+                </form>
+              </td>
+              <td>
+                <span class="pill"><%= member.language %></span>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="/js/guild.js" defer></script>
+<%- include('partials/footer') %>

@@ -1,0 +1,64 @@
+<%- include('partials/head', { title }) %>
+<%- include('partials/nav', { currentUser }) %>
+
+<main class="page-shell">
+  <section class="hero-card">
+    <div class="hero-copy">
+      <p class="eyebrow">Bot + panel web</p>
+      <h1>Gestiona anuncios multilenguaje y eventos desde Discord o desde la web.</h1>
+      <p class="lede">
+        Este proyecto combina un bot de Discord en <strong>Node.js + discord.js</strong>,
+        una API interna protegida, MongoDB compartido y un panel de administración con
+        OAuth2 de Discord.
+      </p>
+      <div class="hero-actions">
+        <a class="primary-button" href="/auth/login">Entrar con Discord</a>
+        <a class="ghost-button" href="/dashboard">Ir al dashboard</a>
+      </div>
+    </div>
+
+    <div class="hero-panel">
+      <div class="metric-card">
+        <span>Idiomas</span>
+        <strong>6</strong>
+      </div>
+      <div class="metric-card">
+        <span>Canales configurables</span>
+        <strong>Logs + fallback</strong>
+      </div>
+      <div class="metric-card">
+        <span>Integración</span>
+        <strong>Discord OAuth2 + REST</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature-grid">
+    <article class="feature-card">
+      <h2>Idiomas por usuario</h2>
+      <p>
+        Cada miembro puede elegir su idioma con <code>/idioma</code>, guardar la
+        preferencia en MongoDB y recibir el rol correspondiente automáticamente.
+      </p>
+    </article>
+
+    <article class="feature-card">
+      <h2>Anuncios y eventos</h2>
+      <p>
+        Administradores pueden enviar anuncios y eventos desde slash commands o
+        desde el panel web, con traducción automática y fallback cuando los DMs
+        están cerrados.
+      </p>
+    </article>
+
+    <article class="feature-card">
+      <h2>Panel administrativo</h2>
+      <p>
+        El dashboard lista solo los servidores donde el bot está presente y donde
+        tu cuenta tiene permisos de administrador.
+      </p>
+    </article>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

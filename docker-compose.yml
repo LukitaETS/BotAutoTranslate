@@ -1,0 +1,43 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    env_file:
+      - .env
+    environment:
+      MONGO_URI: mongodb://mongo:27017/discord-language-bot
+      BOT_INTERNAL_API_PORT: 3050
+    depends_on:
+      - mongo
+    expose:
+      - "3050"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    env_file:
+      - .env
+    environment:
+      MONGO_URI: mongodb://mongo:27017/discord-language-bot
+      BOT_INTERNAL_API_URL: http://bot:3050
+      APP_BASE_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+      - bot
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
